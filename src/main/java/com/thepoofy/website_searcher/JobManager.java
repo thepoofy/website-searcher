@@ -16,6 +16,10 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.PriorityBlockingQueue;
 
+import com.thepoofy.website_searcher.models.Job;
+import com.thepoofy.website_searcher.models.MozData;
+import com.thepoofy.website_searcher.models.MozResults;
+
 /**
  * 
  * @author wvanderhoef
@@ -30,7 +34,7 @@ public class JobManager {
 
     private final Queue<MozData>         queue;
     private final Map<UUID, Job>         issuedJobs;
-    private final List<Job>              results;
+    private final List<MozResults>              results;
     private final Timer                  cleanupTimer;
 
     private final OnJobsCompleteListener listener;
@@ -50,7 +54,7 @@ public class JobManager {
         }
 
         this.issuedJobs = new ConcurrentHashMap<>();
-        this.results = Collections.synchronizedList(new ArrayList<Job>());
+        this.results = Collections.synchronizedList(new ArrayList<MozResults>());
 
         // purge the list of issued jobs every so often
         this.cleanupTimer = new Timer();
@@ -95,7 +99,7 @@ public class JobManager {
         // check to see if the job took too long to complete and has been reissued
         if (j != null) {
             j.setIsSuccessful(isSuccessful);
-            results.add(j);
+            results.add(MozResults.instanceOf(j.getMozData(), isSuccessful));
         }
 
         // if there are no issued jobs or work left to be issued as a job then complete

@@ -1,4 +1,4 @@
-package com.thepoofy.website_searcher;
+package com.thepoofy.website_searcher.models;
 
 import java.util.Date;
 import java.util.UUID;

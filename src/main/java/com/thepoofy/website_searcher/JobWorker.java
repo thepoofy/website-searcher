@@ -1,5 +1,7 @@
 package com.thepoofy.website_searcher;
 
+import com.thepoofy.website_searcher.models.Job;
+
 /**
  * Executes jobs issues by the JobManager
  * 

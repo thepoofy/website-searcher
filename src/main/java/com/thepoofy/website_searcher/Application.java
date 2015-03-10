@@ -1,38 +1,67 @@
 package com.thepoofy.website_searcher;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.thepoofy.website_searcher.csv.reader.MozReader;
+import com.thepoofy.website_searcher.csv.reader.MozReaderFactory;
+import com.thepoofy.website_searcher.csv.writer.MozWriterFactory;
+import com.thepoofy.website_searcher.models.MozData;
+import com.thepoofy.website_searcher.models.MozResults;
+
 public class Application {
 
+    private static final String OUTPUT_FILE_NAME = "results.txt";
+    
     public static void main(String[] args) {
 
-        // TODO accept by parameter
-        final int numWorkers = 20;
-        final String searchPhrase = "Welcome";
+        if (args.length != 3) {
+            System.err.println("usage: fileName searchPhrase concurrency");
+        }
 
-        String inputFile = "";
-        String outputFile = "";
+        // TODO accept by parameter
+        final String inputFile = args[0];
+        final String searchPhrase = args[1];
+        final int numWorkers = Integer.parseInt(args[2]);
+
+        
 
         MozReader reader = new MozReaderFactory().instanceOf();
-        
-        Collection<MozData> data = reader.fromFile(inputFile);
+
+        Collection<MozData> data = null;
+        try {
+            data = reader.fromFile(inputFile);
+        } catch (IOException e) {
+
+            // print failure and exit
+            System.err.println("Unable to load file." + e.getMessage());
+            return;
+        }
 
         /*
          * The job manager maintains all the state of what jobs have been issued and their results.
          * Upon completion of all jobs this listener will be executed and results of all jobs will be submitted.
          */
         JobManager manager = new JobManager(data, new OnJobsCompleteListener() {
-            
+
             @Override
-            public void onComplete(List<Job> resultsList) {
+            public void onComplete(List<MozResults> resultsList) {
                 // TODO write out to a file
+                
+                try {
+                    new MozWriterFactory().instanceOf().toFile(OUTPUT_FILE_NAME, resultsList);
+                } catch (IOException ioe) {
+                    System.err.println("Unable to print results to file");
+                    return;
+                }
+                
             }
         });
 
         List<Thread> threadList = new ArrayList<>();
-        
+
         for (int i = 0; i < numWorkers; ++i) {
 
             /*
@@ -51,11 +80,10 @@ public class Application {
             threadList.add(t);
         }
 
-        for(Thread t : threadList) {
+        for (Thread t : threadList) {
             try {
                 t.join();
-            }
-            catch (InterruptedException ie) {
+            } catch (InterruptedException ie) {
                 System.out.println("A thread died, oh noes.");
             }
         }

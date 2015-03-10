@@ -1,4 +1,4 @@
-package urlfetch;
+package com.thepoofy.website_searcher;
 
 
 public class MozData {

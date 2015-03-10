@@ -1,4 +1,4 @@
-package urlfetch;
+package com.thepoofy.website_searcher;
 
 /**
  * Exception to indicate that no additional jobs are currently available.

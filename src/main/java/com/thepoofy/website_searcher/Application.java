@@ -1,4 +1,4 @@
-package urlfetch;
+package com.thepoofy.website_searcher;
 
 import java.util.ArrayList;
 import java.util.Collection;

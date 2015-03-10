@@ -17,6 +17,7 @@ public class Application {
     
     public static void main(String[] args) {
 
+        System.out.println("Application started.");
         if (args.length != 3) {
             System.err.println("usage: fileName searchPhrase concurrency");
         }
@@ -87,6 +88,8 @@ public class Application {
                 System.out.println("A thread died, oh noes.");
             }
         }
+        
+        System.out.println("Application finished.");
     }
 
 

@@ -50,15 +50,18 @@ public class Application {
             @Override
             public void onComplete(List<MozResults> resultsList) {
 
-                synchronized(Application.class) {
-                    if(!resultsList.isEmpty()) {
+                synchronized (Application.class) {
+                    if (!resultsList.isEmpty()) {
                         try {
                             new MozWriterFactory().instanceOf().toFile(OUTPUT_FILE_NAME, resultsList);
+
                             System.out.println("results written.");
+
                         } catch (IOException ioe) {
                             ioe.printStackTrace(System.err);
                             return;
                         }
+
                     } else {
                         System.err.println("No results found.");
                     }

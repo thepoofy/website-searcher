@@ -15,6 +15,7 @@ import java.util.TimerTask;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.PriorityBlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.thepoofy.website_searcher.models.Job;
 import com.thepoofy.website_searcher.models.MozData;
@@ -27,17 +28,16 @@ import com.thepoofy.website_searcher.models.MozResults;
 public class JobManager {
 
     private static final long            CLEANUP_TASK_DELAY    = 0L;
-
-    // sixty second interval
     private static final long            CLEANUP_TASK_INTERVAL = 1000 * 60;
     private static final long            JOB_DEADLINE          = 1000 * 60 * 2;
 
     private final Queue<MozData>         queue;
     private final Map<UUID, Job>         issuedJobs;
-    private final List<MozResults>              results;
+    private final List<MozResults>       results;
     private final Timer                  cleanupTimer;
 
     private final OnJobsCompleteListener listener;
+    private final AtomicBoolean          isComplete;
 
     /**
      * 
@@ -65,10 +65,11 @@ public class JobManager {
         this.queue.addAll(mozDataList);
 
         this.listener = listener;
+        this.isComplete = new AtomicBoolean(false);
     }
 
     /**
-     * Request the next available job. 
+     * Request the next available job.
      * 
      * @return
      * @throws JobUnavailableException if all jobs have been issued
@@ -103,7 +104,8 @@ public class JobManager {
         }
 
         // if there are no issued jobs or work left to be issued as a job then complete
-        if (issuedJobs.isEmpty() && queue.isEmpty()) {
+        if (issuedJobs.isEmpty() && queue.isEmpty() && isComplete.compareAndSet(false, true)) {
+
             listener.onComplete(this.results);
         }
     }

@@ -1,18 +1,17 @@
 package com.thepoofy.website_searcher.csv.reader;
 
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.Reader;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import com.opencsv.CSVReader;
-import com.opencsv.bean.CsvToBean;
-import com.opencsv.bean.HeaderColumnNameTranslateMappingStrategy;
+import com.fasterxml.jackson.databind.MappingIterator;
+import com.fasterxml.jackson.dataformat.csv.CsvMapper;
+import com.fasterxml.jackson.dataformat.csv.CsvSchema;
+import com.fasterxml.jackson.dataformat.csv.CsvSchema.ColumnType;
 import com.thepoofy.website_searcher.models.MozData;
 
 public class MozCsvReader implements MozReader {
@@ -22,24 +21,28 @@ public class MozCsvReader implements MozReader {
 
         List<MozData> dataList = new ArrayList<>();
 
-        CsvToBean<MozData> bean = new CsvToBean<MozData>();
+        CsvSchema schema = CsvSchema.builder()
+                .addColumn("rank", ColumnType.NUMBER)
+                .addColumn("url", ColumnType.NUMBER)
+                .addColumn("linkingRootDomains", ColumnType.NUMBER)
+                .addColumn("externalLinks", ColumnType.NUMBER)
+                .addColumn("mozRank", ColumnType.NUMBER)
+                .addColumn("mozTrust", ColumnType.NUMBER)
+                .setSkipFirstDataRow(true)
+                .build();
 
-        Map<String, String> columnMapping = new HashMap<String, String>();
-        columnMapping.put("Rank", "rank");
-        columnMapping.put("URL", "url");
-        columnMapping.put("Linking Root Domains", "linkingRootDomains");
-        columnMapping.put("External Links", "externalLinks");
-        columnMapping.put("mozRank", "mozRank");
-        columnMapping.put("mozTrust", "mozTrust");
-
-        HeaderColumnNameTranslateMappingStrategy<MozData> strategy = new HeaderColumnNameTranslateMappingStrategy<MozData>();
-        strategy.setColumnMapping(columnMapping);
+        CsvMapper mapper = new CsvMapper();
 
 
-        try (Reader fileReader = new FileReader(fileName);
-                CSVReader csvReader = new CSVReader(fileReader, 'c', '"')) {
+        try (InputStream is = new FileInputStream(fileName)) {
 
-            dataList = bean.parse(strategy, csvReader);
+            MappingIterator<MozData> itr = mapper.reader(MozData.class)
+                    .with(schema)
+                    .readValues(is);
+
+            while (itr.hasNext()) {
+                dataList.add(itr.next());
+            }
 
         } finally {
 

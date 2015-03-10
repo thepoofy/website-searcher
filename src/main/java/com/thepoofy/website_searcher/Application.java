@@ -14,7 +14,7 @@ import com.thepoofy.website_searcher.models.MozResults;
 public class Application {
 
     private static final String OUTPUT_FILE_NAME = "results.txt";
-    
+
     public static void main(String[] args) {
 
         System.out.println("Application started.");
@@ -22,12 +22,11 @@ public class Application {
             System.err.println("usage: fileName searchPhrase concurrency");
         }
 
-        // TODO accept by parameter
+        // accept by parameter
         final String inputFile = args[0];
         final String searchPhrase = args[1];
         final int numWorkers = Integer.parseInt(args[2]);
 
-        
 
         MozReader reader = new MozReaderFactory().instanceOf();
 
@@ -37,7 +36,8 @@ public class Application {
         } catch (IOException e) {
 
             // print failure and exit
-            System.err.println("Unable to load file." + e.getMessage());
+            e.printStackTrace(System.err);
+
             return;
         }
 
@@ -49,15 +49,20 @@ public class Application {
 
             @Override
             public void onComplete(List<MozResults> resultsList) {
-                // TODO write out to a file
-                
-                try {
-                    new MozWriterFactory().instanceOf().toFile(OUTPUT_FILE_NAME, resultsList);
-                } catch (IOException ioe) {
-                    System.err.println("Unable to print results to file");
-                    return;
+
+                synchronized(Application.class) {
+                    if(!resultsList.isEmpty()) {
+                        try {
+                            new MozWriterFactory().instanceOf().toFile(OUTPUT_FILE_NAME, resultsList);
+                            System.out.println("results written.");
+                        } catch (IOException ioe) {
+                            ioe.printStackTrace(System.err);
+                            return;
+                        }
+                    } else {
+                        System.err.println("No results found.");
+                    }
                 }
-                
             }
         });
 
@@ -88,7 +93,7 @@ public class Application {
                 System.out.println("A thread died, oh noes.");
             }
         }
-        
+
         System.out.println("Application finished.");
     }
 

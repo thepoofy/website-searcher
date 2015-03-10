@@ -7,35 +7,42 @@
 
  <dependencies>
   <dependency>
-   <groupId>com.opencsv</groupId>
-   <artifactId>opencsv</artifactId>
-   <version>3.3</version>
+   <groupId>com.fasterxml.jackson.dataformat</groupId>
+   <artifactId>jackson-dataformat-csv</artifactId>
+   <version>2.5.1</version>
   </dependency>
+
  </dependencies>
- 
+
  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>exec-maven-plugin</artifactId>
-        <version>1.3.2</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>java</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <mainClass>com.thepoofy.website_searcher.Application</mainClass>
-          <arguments>
-            <argument>argument1.txt</argument>
-            <argument>Welcome</argument>
-            <argument>20</argument>
-          </arguments>
-          
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
+  <resources>
+   <resource>
+    <directory>src/main/resources</directory>
+    <filtering>true</filtering>
+   </resource>
+  </resources>
+  <plugins>
+   <plugin>
+    <groupId>org.codehaus.mojo</groupId>
+    <artifactId>exec-maven-plugin</artifactId>
+    <version>1.3.2</version>
+    <executions>
+     <execution>
+      <goals>
+       <goal>java</goal>
+      </goals>
+     </execution>
+    </executions>
+    <configuration>
+     <mainClass>com.thepoofy.website_searcher.Application</mainClass>
+     <arguments>
+      <argument>src/main/resources/urls.txt</argument>
+      <argument>Welcome</argument>
+      <argument>20</argument>
+     </arguments>
+
+    </configuration>
+   </plugin>
+  </plugins>
+ </build>
 </project>

@@ -5,7 +5,7 @@ package com.thepoofy.website_searcher.models;
  * 
  * @author wvanderhoef
  */
-public class MozData {
+public class MozData implements Comparable<MozData>{
 
     private int    rank;
     private String url;
@@ -60,6 +60,11 @@ public class MozData {
 
     public void setMozTrust(float mozTrust) {
         this.mozTrust = mozTrust;
+    }
+
+    @Override
+    public int compareTo(MozData arg0) {
+        return this.getRank() - arg0.getRank();
     }
 
 

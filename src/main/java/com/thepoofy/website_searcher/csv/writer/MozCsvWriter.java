@@ -1,15 +1,14 @@
 package com.thepoofy.website_searcher.csv.writer;
 
 import java.io.FileNotFoundException;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import com.opencsv.CSVWriter;
-import com.opencsv.bean.BeanToCsv;
-import com.opencsv.bean.HeaderColumnNameTranslateMappingStrategy;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.dataformat.csv.CsvMapper;
+import com.fasterxml.jackson.dataformat.csv.CsvSchema;
+import com.fasterxml.jackson.dataformat.csv.CsvSchema.ColumnType;
 import com.thepoofy.website_searcher.models.MozResults;
 
 public class MozCsvWriter implements MozWriter {
@@ -17,25 +16,27 @@ public class MozCsvWriter implements MozWriter {
     @Override
     public void toFile(String fileName, List<MozResults> mozData) throws IOException, FileNotFoundException {
 
-        BeanToCsv<MozResults> bean = new BeanToCsv<MozResults>();
 
-        Map<String, String> columnMapping = new HashMap<String, String>();
-        columnMapping.put("Rank", "rank");
-        columnMapping.put("URL", "url");
-        columnMapping.put("Linking Root Domains", "linkingRootDomains");
-        columnMapping.put("External Links", "externalLinks");
-        columnMapping.put("mozRank", "mozRank");
-        columnMapping.put("mozTrust", "mozTrust");
-        columnMapping.put("Success", "isSuccessful");
+        CsvSchema schema = CsvSchema.builder()
+                .addColumn("rank", ColumnType.NUMBER)
+                .addColumn("url", ColumnType.NUMBER)
+                .addColumn("linkingRootDomains", ColumnType.NUMBER)
+                .addColumn("externalLinks", ColumnType.NUMBER)
+                .addColumn("mozRank", ColumnType.NUMBER)
+                .addColumn("mozTrust", ColumnType.NUMBER)
+                .addColumn("isSuccessful", ColumnType.BOOLEAN)
+                .build();
 
-        HeaderColumnNameTranslateMappingStrategy<MozResults> strategy = new HeaderColumnNameTranslateMappingStrategy<MozResults>();
-        strategy.setColumnMapping(columnMapping);
+        CsvMapper mapper = new CsvMapper();
 
-        try (CSVWriter writer = new CSVWriter(new FileWriter(fileName))) {
-            
-            bean.write(strategy, writer, mozData);
+        try (FileOutputStream fos = new FileOutputStream(fileName)) {
+
+            ObjectWriter writer = mapper.writer(schema.withLineSeparator("\n"));
+
+            writer.writeValues(fos).writeAll(mozData.toArray());
             
         }
+
     }
 
 }

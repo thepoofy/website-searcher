@@ -22,6 +22,7 @@ import com.thepoofy.website_searcher.models.MozData;
 import com.thepoofy.website_searcher.models.MozResults;
 
 /**
+ * JobManager is the control for all work.
  * 
  * @author wvanderhoef
  */
@@ -56,13 +57,13 @@ public class JobManager {
         this.issuedJobs = new ConcurrentHashMap<>();
         this.results = Collections.synchronizedList(new ArrayList<MozResults>());
 
-        // purge the list of issued jobs every so often
-        this.cleanupTimer = new Timer();
-        this.cleanupTimer.scheduleAtFixedRate(new CleanupTask(), CLEANUP_TASK_DELAY, CLEANUP_TASK_INTERVAL);
-
         // initialize a concurrency safe queue with all the Moz records 
         this.queue = new PriorityBlockingQueue<>(mozDataList.size());
         this.queue.addAll(mozDataList);
+
+        // purge the list of issued jobs every so often
+        this.cleanupTimer = new Timer();
+        this.cleanupTimer.scheduleAtFixedRate(new CleanupTask(), CLEANUP_TASK_DELAY, CLEANUP_TASK_INTERVAL);
 
         this.listener = listener;
         this.isComplete = new AtomicBoolean(false);
@@ -76,6 +77,7 @@ public class JobManager {
      */
     public Job getNext() throws JobUnavailableException {
 
+        System.out.println("Requesting next job.");
         MozData nextUrl = queue.poll();
 
         if (nextUrl == null) {
@@ -106,14 +108,23 @@ public class JobManager {
         // if there are no issued jobs or work left to be issued as a job then complete
         if (issuedJobs.isEmpty() && queue.isEmpty() && isComplete.compareAndSet(false, true)) {
 
+            // stop the timers
+            this.shutdown();
             listener.onComplete(this.results);
         }
     }
 
 
+    /**
+     * If a thread is killed by a chaos monkey or interrupted for whatever reason the Job must be reissued.
+     * As a separate process JobManager reviews issued jobs and removes any which have taken too long to respond.
+     * 
+     * This is overkill for the project scope but crucial to the correctness of the design.
+     */
     public void resetOverdueJobs() {
 
         Set<Entry<UUID, Job>> entries = issuedJobs.entrySet();
+
 
         Iterator<Entry<UUID, Job>> itr = entries.iterator();
         while (itr.hasNext()) {
@@ -129,9 +140,26 @@ public class JobManager {
                 queue.add(job.getMozData());
 
                 // remove the job from the issuedJobs map
+                System.out.println("resetting job for " + job.getMozData().getUrl());
                 itr.remove();
             }
         }
+    }
+
+    public int getQueueSize() {
+        return queue.size();
+    }
+
+    public int getIssuedJobsSize() {
+        return issuedJobs.size();
+    }
+
+    public int getResultsSize() {
+        return results.size();
+    }
+    
+    public void shutdown() {
+        this.cleanupTimer.cancel();
     }
 
     /**

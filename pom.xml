@@ -11,7 +11,17 @@
    <artifactId>jackson-dataformat-csv</artifactId>
    <version>2.5.1</version>
   </dependency>
+  <dependency>
+   <groupId>javax.ws.rs</groupId>
+   <artifactId>javax.ws.rs-api</artifactId>
+   <version>[2.0.1,)</version>
+  </dependency>
 
+  <dependency>
+   <groupId>org.glassfish.jersey.core</groupId>
+   <artifactId>jersey-client</artifactId>
+   <version>[2.0.1,)</version>
+  </dependency>
  </dependencies>
 
  <build>
@@ -37,7 +47,7 @@
      <mainClass>com.thepoofy.website_searcher.Application</mainClass>
      <arguments>
       <argument>src/main/resources/urls.txt</argument>
-      <argument>Welcome</argument>
+      <argument>html</argument>
       <argument>20</argument>
      </arguments>
 

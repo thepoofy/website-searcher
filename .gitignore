@@ -1,2 +1,6 @@
 /target/
 /results.txt
+/.settings/
+.project
+.classpath
+
